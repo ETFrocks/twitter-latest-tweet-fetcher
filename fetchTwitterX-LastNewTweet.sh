@@ -9,6 +9,17 @@ username="username"
 file="latest_tweet.txt"
 file_path="$BASE_DIR/$file"
 
+# Check if the required applications are installed
+if ! command -v twurl &> /dev/null; then
+    echo "twurl could not be found. Please install it and run the script again."
+    exit 1
+fi
+
+if ! command -v jq &> /dev/null; then
+    echo "jq could not be found. Please install it and run the script again."
+    exit 1
+fi
+
 # Check if the file exists, if not create it
 if [[ ! -f $file_path ]]; then
     touch $file_path
@@ -24,4 +35,3 @@ if [[ "$latest_tweet" != "$(cat $file_path)" ]] && [[ -n "$latest_tweet" ]]; the
 else
     echo "No new tweets."
 fi
-
