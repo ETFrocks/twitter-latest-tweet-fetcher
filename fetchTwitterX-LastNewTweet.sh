@@ -9,6 +9,9 @@ username="username"
 file="latest_tweet.txt"
 file_path="$BASE_DIR/$file"
 
+# Email to send notification
+email="your-email@example.com"
+
 # Check if the required applications are installed
 if ! command -v twurl &> /dev/null; then
     echo "twurl could not be found. Please install it and run the script again."
@@ -32,6 +35,7 @@ latest_tweet=$(twurl "/1.1/statuses/user_timeline.json?screen_name=$username&cou
 if [[ "$latest_tweet" != "$(cat $file_path)" ]] && [[ -n "$latest_tweet" ]]; then
     echo "$latest_tweet" > $file_path
     echo "New tweet: $latest_tweet"
+    echo "New tweet from $username: $latest_tweet" | mail -s "New Tweet Alert" $email
 else
     echo "No new tweets."
 fi
