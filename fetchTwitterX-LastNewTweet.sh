@@ -9,6 +9,10 @@ username="username"
 file="latest_tweet.txt"
 file_path="$BASE_DIR/$file"
 
+# File to store the date and time of the latest tweet
+date_file="latest_tweet_date.txt"
+date_file_path="$BASE_DIR/$date_file"
+
 # Email to send notification
 email="your-email@example.com"
 
@@ -23,19 +27,26 @@ if ! command -v jq &> /dev/null; then
     exit 1
 fi
 
-# Check if the file exists, if not create it
+# Check if the files exist, if not create them
 if [[ ! -f $file_path ]]; then
     touch $file_path
 fi
 
-# Get the latest tweet
+if [[ ! -f $date_file_path ]]; then
+    touch $date_file_path
+fi
+
+# Get the latest tweet and its date
 latest_tweet=$(twurl "/1.1/statuses/user_timeline.json?screen_name=$username&count=1" | jq -r '.[0].text' || echo "")
+latest_tweet_date=$(twurl "/1.1/statuses/user_timeline.json?screen_name=$username&count=1" | jq -r '.[0].created_at' || echo "")
 
 # Check if the latest tweet is different from the stored one
 if [[ "$latest_tweet" != "$(cat $file_path)" ]] && [[ -n "$latest_tweet" ]]; then
     echo "$latest_tweet" > $file_path
+    echo "$latest_tweet_date" > $date_file_path
     echo "New tweet: $latest_tweet"
-    echo "New tweet from $username: $latest_tweet" | mail -s "New Tweet Alert" $email
+    echo "Date: $latest_tweet_date"
+    echo "New tweet from $username: $latest_tweet on $latest_tweet_date" | mail -s "New Tweet Alert" $email
 else
     echo "No new tweets."
 fi
