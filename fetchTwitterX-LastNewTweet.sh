@@ -46,7 +46,11 @@ if [[ "$latest_tweet" != "$(cat $file_path)" ]] && [[ -n "$latest_tweet" ]]; the
     echo "$latest_tweet_date" > $date_file_path
     echo "New tweet: $latest_tweet"
     echo "Date: $latest_tweet_date"
-    echo "New tweet from $username: $latest_tweet on $latest_tweet_date" | mail -s "New Tweet Alert" $email
+    if echo "New tweet from $username: $latest_tweet on $latest_tweet_date" | mail -s "New Tweet Alert" $email; then
+        echo "Email sent successfully."
+    else
+        echo "Failed to send email."
+    fi
 else
     echo "No new tweets."
 fi
