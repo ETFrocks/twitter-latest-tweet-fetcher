@@ -16,6 +16,9 @@ date_file_path="$BASE_DIR/$date_file"
 # Email to send notification
 email="your-email@example.com"
 
+# Retry count
+retry_count=5
+
 # Check if the required applications are installed
 if ! command -v twurl &> /dev/null; then
     echo "twurl could not be found. Please install it and run the script again."
@@ -36,9 +39,20 @@ if [[ ! -f $date_file_path ]]; then
     touch $date_file_path
 fi
 
-# Get the latest tweet and its date
-latest_tweet=$(twurl "/1.1/statuses/user_timeline.json?screen_name=$username&count=1" | jq -r '.[0].text' || echo "")
-latest_tweet_date=$(twurl "/1.1/statuses/user_timeline.json?screen_name=$username&count=1" | jq -r '.[0].created_at' || echo "")
+# Function to get the latest tweet and its date
+get_latest_tweet() {
+    for i in $(seq 1 $retry_count); do
+        latest_tweet=$(twurl "/1.1/statuses/user_timeline.json?screen_name=$username&count=1" | jq -r '.[0].text' || echo "")
+        latest_tweet_date=$(twurl "/1.1/statuses/user_timeline.json?screen_name=$username&count=1" | jq -r '.[0].created_at' || echo "")
+        if [[ -n "$latest_tweet" ]]; then
+            break
+        else
+            sleep 60
+        fi
+    done
+}
+
+get_latest_tweet
 
 # Check if the latest tweet is different from the stored one
 if [[ "$latest_tweet" != "$(cat $file_path)" ]] && [[ -n "$latest_tweet" ]]; then
