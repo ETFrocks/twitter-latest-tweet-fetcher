@@ -13,6 +13,10 @@ file_path="$BASE_DIR/$file"
 date_file="latest_tweet_date.txt"
 date_file_path="$BASE_DIR/$date_file"
 
+# Log file
+log_file="tweet_fetch_log.txt"
+log_file_path="$BASE_DIR/$log_file"
+
 # Email to send notification
 email="your-email@example.com"
 
@@ -21,12 +25,12 @@ retry_count=5
 
 # Check if the required applications are installed
 if ! command -v twurl &> /dev/null; then
-    echo "twurl could not be found. Please install it and run the script again."
+    echo "twurl could not be found. Please install it and run the script again." | tee -a $log_file_path
     exit 1
 fi
 
 if ! command -v jq &> /dev/null; then
-    echo "jq could not be found. Please install it and run the script again."
+    echo "jq could not be found. Please install it and run the script again." | tee -a $log_file_path
     exit 1
 fi
 
@@ -37,6 +41,10 @@ fi
 
 if [[ ! -f $date_file_path ]]; then
     touch $date_file_path
+fi
+
+if [[ ! -f $log_file_path ]]; then
+    touch $log_file_path
 fi
 
 # Function to get the latest tweet and its date
@@ -58,13 +66,13 @@ get_latest_tweet
 if [[ "$latest_tweet" != "$(cat $file_path)" ]] && [[ -n "$latest_tweet" ]]; then
     echo "$latest_tweet" > $file_path
     echo "$latest_tweet_date" > $date_file_path
-    echo "New tweet: $latest_tweet"
-    echo "Date: $latest_tweet_date"
+    echo "New tweet: $latest_tweet" | tee -a $log_file_path
+    echo "Date: $latest_tweet_date" | tee -a $log_file_path
     if echo "New tweet from $username: $latest_tweet on $latest_tweet_date" | mail -s "New Tweet Alert" $email; then
-        echo "Email sent successfully."
+        echo "Email sent successfully." | tee -a $log_file_path
     else
-        echo "Failed to send email."
+        echo "Failed to send email." | tee -a $log_file_path
     fi
 else
-    echo "No new tweets."
+    echo "No new tweets." | tee -a $log_file_path
 fi
