@@ -55,6 +55,7 @@ get_latest_tweet() {
         if [[ -n "$latest_tweet" ]]; then
             break
         else
+            echo "Attempt $i to fetch the latest tweet failed. Retrying in 60 seconds..." | tee -a $log_file_path
             sleep 60
         fi
     done
