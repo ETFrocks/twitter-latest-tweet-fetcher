@@ -34,6 +34,11 @@ if ! command -v jq &> /dev/null; then
     exit 1
 fi
 
+if ! command -v mail &> /dev/null; then
+    echo "mail could not be found. Please install it and run the script again." | tee -a $log_file_path
+    exit 1
+fi
+
 # Check if the files exist, if not create them
 if [[ ! -f $file_path ]]; then
     touch $file_path
