@@ -17,11 +17,18 @@ date_file_path="$BASE_DIR/$date_file"
 log_file="tweet_fetch_log.txt"
 log_file_path="$BASE_DIR/$log_file"
 
+# Execution time log file
+time_log_file="execution_time_log.txt"
+time_log_file_path="$BASE_DIR/$time_log_file"
+
 # Email to send notification
 email="your-email@example.com"
 
 # Retry count
 retry_count=5
+
+# Start time
+start_time=$(date +%s)
 
 # Check if the required applications are installed
 if ! command -v twurl &> /dev/null; then
@@ -82,3 +89,12 @@ if [[ "$latest_tweet" != "$(cat $file_path)" ]] && [[ -n "$latest_tweet" ]]; the
 else
     echo "No new tweets." | tee -a $log_file_path
 fi
+
+# End time
+end_time=$(date +%s)
+
+# Calculate execution time
+execution_time=$(($end_time - $start_time))
+
+# Log execution time
+echo "Execution time: $execution_time seconds" | tee -a $time_log_file_path
