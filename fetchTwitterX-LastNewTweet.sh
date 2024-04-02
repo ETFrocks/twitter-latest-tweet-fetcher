@@ -30,6 +30,12 @@ retry_count=5
 # Start time
 start_time=$(date +%s)
 
+# Check internet connectivity
+if ! ping -c 1 google.com &> /dev/null; then
+    echo "No internet connection. Please check your network and run the script again." | tee -a $log_file_path
+    exit 1
+fi
+
 # Check if the required applications are installed
 if ! command -v twurl &> /dev/null; then
     echo "twurl could not be found. Please install it and run the script again." | tee -a $log_file_path
