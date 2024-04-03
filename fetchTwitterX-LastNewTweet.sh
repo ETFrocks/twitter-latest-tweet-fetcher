@@ -21,6 +21,10 @@ log_file_path="$BASE_DIR/$log_file"
 time_log_file="execution_time_log.txt"
 time_log_file_path="$BASE_DIR/$time_log_file"
 
+# Failure count log file
+failure_log_file="failure_count_log.txt"
+failure_log_file_path="$BASE_DIR/$failure_log_file"
+
 # Email to send notification
 email="your-email@example.com"
 
@@ -65,8 +69,13 @@ if [[ ! -f $log_file_path ]]; then
     touch $log_file_path
 fi
 
+if [[ ! -f $failure_log_file_path ]]; then
+    touch $failure_log_file_path
+fi
+
 # Function to get the latest tweet and its date
 get_latest_tweet() {
+    failure_count=0
     for i in $(seq 1 $retry_count); do
         latest_tweet=$(twurl "/1.1/statuses/user_timeline.json?screen_name=$username&count=1" | jq -r '.[0].text' || echo "")
         latest_tweet_date=$(twurl "/1.1/statuses/user_timeline.json?screen_name=$username&count=1" | jq -r '.[0].created_at' || echo "")
@@ -74,9 +83,11 @@ get_latest_tweet() {
             break
         else
             echo "Attempt $i to fetch the latest tweet failed. Retrying in 60 seconds..." | tee -a $log_file_path
+            ((failure_count++))
             sleep 60
         fi
     done
+    echo "Number of failed attempts: $failure_count" | tee -a $failure_log_file_path
 }
 
 get_latest_tweet
