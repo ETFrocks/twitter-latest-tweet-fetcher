@@ -1,5 +1,14 @@
 #!/bin/bash
 
+# Function to validate email
+validate_email() {
+    if [[ $1 =~ ^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$ ]]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
 BASE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 # Twitter username
@@ -98,10 +107,14 @@ if [[ "$latest_tweet" != "$(cat $file_path)" ]] && [[ -n "$latest_tweet" ]]; the
     echo "$latest_tweet_date" > $date_file_path
     echo "New tweet: $latest_tweet" | tee -a $log_file_path
     echo "Date: $latest_tweet_date" | tee -a $log_file_path
-    if echo "New tweet from $username: $latest_tweet on $latest_tweet_date" | mail -s "New Tweet Alert" $email; then
-        echo "Email sent successfully." | tee -a $log_file_path
+    if validate_email $email; then
+        if echo "New tweet from $username: $latest_tweet on $latest_tweet_date" | mail -s "New Tweet Alert" $email; then
+            echo "Email sent successfully." | tee -a $log_file_path
+        else
+            echo "Failed to send email." | tee -a $log_file_path
+        fi
     else
-        echo "Failed to send email." | tee -a $log_file_path
+        echo "Invalid email address. Please check the email address and run the script again." | tee -a $log_file_path
     fi
 else
     echo "No new tweets." | tee -a $log_file_path
