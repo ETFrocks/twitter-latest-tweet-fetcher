@@ -9,6 +9,22 @@ validate_email() {
     fi
 }
 
+# Function to send email with retry
+send_email() {
+    local count=0
+    while [[ $count -lt 5 ]]; do
+        if echo "New tweet from $username: $latest_tweet on $latest_tweet_date" | mail -s "New Tweet Alert" $email; then
+            echo "Email sent successfully." | tee -a $log_file_path
+            return 0
+        else
+            ((count++))
+            echo "Failed to send email. Attempt $count" | tee -a $log_file_path
+            sleep 5
+        fi
+    done
+    return 1
+}
+
 BASE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 # Twitter username
@@ -101,21 +117,18 @@ get_latest_tweet() {
 
 get_latest_tweet
 
+
 # Check if the latest tweet is different from the stored one
 if [[ "$latest_tweet" != "$(cat $file_path)" ]] && [[ -n "$latest_tweet" ]]; then
     echo "$latest_tweet" > $file_path
     echo "$latest_tweet_date" > $date_file_path
     echo "New tweet: $latest_tweet" | tee -a $log_file_path
     echo "Date: $latest_tweet_date" | tee -a $log_file_path
-    if validate_email $email; then
-        if echo "New tweet from $username: $latest_tweet on $latest_tweet_date" | mail -s "New Tweet Alert" $email; then
-            echo "Email sent successfully." | tee -a $log_file_path
+        if validate_email $email; then
+            send_email
         else
-            echo "Failed to send email." | tee -a $log_file_path
+            echo "Invalid email address. Please check the email address and run the script again." | tee -a $log_file_path
         fi
-    else
-        echo "Invalid email address. Please check the email address and run the script again." | tee -a $log_file_path
-    fi
 else
     echo "No new tweets." | tee -a $log_file_path
 fi
