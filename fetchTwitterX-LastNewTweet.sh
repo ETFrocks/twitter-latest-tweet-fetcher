@@ -22,6 +22,7 @@ send_email() {
             sleep 5
         fi
     done
+    echo "Failed to send email after 5 attempts." | tee -a $failure_log_file_path
     return 1
 }
 
