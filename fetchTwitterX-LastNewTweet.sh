@@ -99,6 +99,23 @@ if [[ ! -f $failure_log_file_path ]]; then
     touch $failure_log_file_path
 fi
 
+# Function to send failure notification
+send_failure_notification() {
+    local count=0
+    while [[ $count -lt 5 ]]; do
+        if echo "Failed to fetch the latest tweet after all retry attempts." | mail -s "Tweet Fetch Failure Alert" $email; then
+            echo "Failure notification sent successfully." | tee -a $log_file_path
+            return 0
+        else
+            ((count++))
+            echo "Failed to send failure notification. Attempt $count" | tee -a $log_file_path
+            sleep 5
+        fi
+    done
+    echo "Failed to send failure notification after 5 attempts." | tee -a $failure_log_file_path
+    return 1
+}
+
 # Function to get the latest tweet and its date
 get_latest_tweet() {
     failure_count=0
@@ -118,21 +135,30 @@ get_latest_tweet() {
 
 get_latest_tweet
 
-
-# Check if the latest tweet is different from the stored one
-if [[ "$latest_tweet" != "$(cat $file_path)" ]] && [[ -n "$latest_tweet" ]]; then
-    echo "$latest_tweet" > $file_path
-    echo "$latest_tweet_date" > $date_file_path
-    echo "New tweet: $latest_tweet" | tee -a $log_file_path
-    echo "Date: $latest_tweet_date" | tee -a $log_file_path
+if [[ -n "$latest_tweet" ]]; then
+    # Check if the latest tweet is different from the stored one
+    if [[ "$latest_tweet" != "$(cat $file_path)" ]]; then
+        echo "$latest_tweet" > $file_path
+        echo "$latest_tweet_date" > $date_file_path
+        echo "New tweet: $latest_tweet" | tee -a $log_file_path
+        echo "Date: $latest_tweet_date" | tee -a $log_file_path
         if validate_email $email; then
             send_email
         else
             echo "Invalid email address. Please check the email address and run the script again." | tee -a $log_file_path
         fi
+    else
+        echo "No new tweets." | tee -a $log_file_path
+    fi
 else
-    echo "No new tweets." | tee -a $log_file_path
+    echo "Failed to fetch the latest tweet after all retry attempts." | tee -a $log_file_path
+    if validate_email $email; then
+        send_failure_notification
+    else
+        echo "Invalid email address. Please check the email address and run the script again." | tee -a $log_file_path
+    fi
 fi
+
 
 # End time
 end_time=$(date +%s)
