@@ -26,6 +26,15 @@ send_email() {
     return 1
 }
 
+# Function to check if the email was sent successfully
+check_email_status() {
+    if send_email; then
+        echo "Email sent successfully." | tee -a $log_file_path
+    else
+        echo "Failed to send email. Please check the email address and the mail server." | tee -a $log_file_path
+    fi
+}
+
 BASE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 # Twitter username
@@ -153,7 +162,7 @@ if [[ -n "$latest_tweet" ]]; then
 else
     echo "Failed to fetch the latest tweet after all retry attempts." | tee -a $log_file_path
     if validate_email $email; then
-        send_failure_notification
+        check_email_status
     else
         echo "Invalid email address. Please check the email address and run the script again." | tee -a $log_file_path
     fi
