@@ -13,7 +13,7 @@ validate_email() {
 send_email() {
     local count=0
     while [[ $count -lt 5 ]]; do
-        if echo "New tweet from $username: $latest_tweet on $latest_tweet_date" | mail -s "New Tweet Alert" $email; then
+        if echo "$1" | mail -s "$2" $email; then
             echo "Email sent successfully." | tee -a $log_file_path
             return 0
         else
@@ -66,8 +66,12 @@ email="your-email@example.com"
 # Retry count
 retry_count=5
 
+
 # Start time
 start_time=$(date +%s)
+
+# Send start notification
+send_email "Script started at $(date)" "Script Start Notification"
 
 # Check internet connectivity
 if ! ping -c 1 google.com &> /dev/null; then
@@ -168,9 +172,11 @@ else
     fi
 fi
 
-
 # End time
 end_time=$(date +%s)
+
+# Send end notification
+send_email "Script ended at $(date)" "Script End Notification"
 
 # Calculate execution time
 execution_time=$(($end_time - $start_time))
