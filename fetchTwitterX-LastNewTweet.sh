@@ -11,19 +11,24 @@ validate_email() {
 
 # Function to send email with retry
 send_email() {
-    local count=0
-    while [[ $count -lt 5 ]]; do
-        if echo "$1" | mail -s "$2" $email; then
-            echo "Email sent successfully." | tee -a $log_file_path
-            return 0
-        else
-            ((count++))
-            echo "Failed to send email. Attempt $count" | tee -a $log_file_path
-            sleep 5
-        fi
-    done
-    echo "Failed to send email after 5 attempts." | tee -a $failure_log_file_path
-    return 1
+    if validate_email $email; then
+        local count=0
+        while [[ $count -lt 5 ]]; do
+            if echo "$1" | mail -s "$2" $email; then
+                echo "Email sent successfully." | tee -a $log_file_path
+                return 0
+            else
+                ((count++))
+                echo "Failed to send email. Attempt $count" | tee -a $log_file_path
+                sleep 5
+            fi
+        done
+        echo "Failed to send email after 5 attempts." | tee -a $failure_log_file_path
+        return 1
+    else
+        echo "Invalid email address. Please check the email address and run the script again." | tee -a $log_file_path
+        return 1
+    fi
 }
 
 # Function to check if the email was sent successfully
