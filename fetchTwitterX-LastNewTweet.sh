@@ -33,10 +33,11 @@ send_email() {
 
 # Function to check if the email was sent successfully
 check_email_status() {
-    if send_email; then
-        echo "Email sent successfully." | tee -a $log_file_path
+    if send_email "Test email to check functionality" "Test Email"; then
+        echo "Email functionality is working properly." | tee -a $log_file_path
     else
-        echo "Failed to send email. Please check the email address and the mail server." | tee -a $log_file_path
+        echo "Failed to send test email. Please check the email address and the mail server." | tee -a $log_file_path
+        exit 1
     fi
 }
 
