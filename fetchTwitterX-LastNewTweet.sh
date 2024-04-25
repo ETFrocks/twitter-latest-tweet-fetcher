@@ -41,6 +41,9 @@ check_email_status() {
     fi
 }
 
+# Check if the email function is working before starting the script
+check_email_status
+
 BASE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 # Twitter username
