@@ -181,6 +181,35 @@ else
     fi
 fi
 
+# File to store the tweet count
+tweet_count_file="tweet_count.txt"
+tweet_count_file_path="$BASE_DIR/$tweet_count_file"
+
+# Check if the tweet count file exists, if not create it
+if [[ ! -f $tweet_count_file_path ]]; then
+    echo 0 > $tweet_count_file_path
+fi
+
+# Function to get the tweet count
+get_tweet_count() {
+    tweet_count=$(twurl "/1.1/users/show.json?screen_name=$username" | jq -r '.statuses_count' || echo "")
+}
+
+get_tweet_count
+
+if [[ -n "$tweet_count" ]]; then
+    # Check if the tweet count is different from the stored one
+    if [[ "$tweet_count" != "$(cat $tweet_count_file_path)" ]]; then
+        echo "$tweet_count" > $tweet_count_file_path
+        new_tweets=$(($tweet_count - $(cat $tweet_count_file_path)))
+        echo "Number of new tweets since last run: $new_tweets" | tee -a $log_file_path
+    else
+        echo "No new tweets since last run." | tee -a $log_file_path
+    fi
+else
+    echo "Failed to fetch the tweet count." | tee -a $log_file_path
+fi
+
 # End time
 end_time=$(date +%s)
 
