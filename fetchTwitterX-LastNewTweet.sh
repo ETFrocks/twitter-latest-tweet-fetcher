@@ -41,6 +41,17 @@ check_email_status() {
     fi
 }
 
+# Function to check if the Twitter API is reachable
+check_twitter_api() {
+    if ! curl -s "https://api.twitter.com/1.1/" >/dev/null; then
+        echo "Twitter API is not reachable. Please check your network and run the script again." | tee -a $log_file_path
+        exit 1
+    fi
+}
+
+# Check if the Twitter API is reachable before starting the script
+check_twitter_api
+
 # Check if the email function is working before starting the script
 check_email_status
 
