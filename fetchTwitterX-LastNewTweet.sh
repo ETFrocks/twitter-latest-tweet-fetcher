@@ -148,14 +148,25 @@ send_failure_notification() {
     echo "Failed to send failure notification after 5 attempts." | tee -a $failure_log_file_path
     return 1
 }
+# Success count log file
+success_log_file="success_count_log.txt"
+success_log_file_path="$BASE_DIR/$success_log_file"
+
+# Check if the success count log file exists, if not create it
+if [[ ! -f $success_log_file_path ]]; then
+    echo 0 > $success_log_file_path
+fi
 
 # Function to get the latest tweet and its date
 get_latest_tweet() {
     failure_count=0
+    success_count=$(cat $success_log_file_path)
     for i in $(seq 1 $retry_count); do
         latest_tweet=$(twurl "/1.1/statuses/user_timeline.json?screen_name=$username&count=1" | jq -r '.[0].text' || echo "")
         latest_tweet_date=$(twurl "/1.1/statuses/user_timeline.json?screen_name=$username&count=1" | jq -r '.[0].created_at' || echo "")
         if [[ -n "$latest_tweet" ]]; then
+            ((success_count++))
+            echo $success_count > $success_log_file_path
             break
         else
             echo "Attempt $i to fetch the latest tweet failed. Retrying in 60 seconds..." | tee -a $log_file_path
@@ -164,6 +175,7 @@ get_latest_tweet() {
         fi
     done
     echo "Number of failed attempts: $failure_count" | tee -a $failure_log_file_path
+    echo "Number of successful attempts: $success_count" | tee -a $success_log_file_path
 }
 
 get_latest_tweet
