@@ -1,5 +1,24 @@
 #!/bin/bash
 
+# Function to display usage
+usage() {
+    echo "Usage: $0 [--help]"
+    echo
+    echo "This script fetches the latest tweet from a specified Twitter account and sends an email notification if there is a new tweet."
+    echo "It also checks the reachability of the Twitter API and the functionality of the email before starting."
+    echo "The script retries fetching the tweet for a specified number of times if it fails."
+    echo "It logs the start and end times, the execution time, the number of failed and successful attempts, and the number of new tweets since the last run."
+    echo
+    echo "Options:"
+    echo "  --help    Display this help and exit"
+}
+
+# Check if --help option is given
+if [[ $1 == "--help" ]]; then
+    usage
+    exit 0
+fi
+
 # Function to validate email
 validate_email() {
     if [[ $1 =~ ^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$ ]]; then
